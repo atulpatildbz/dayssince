@@ -8,6 +8,8 @@ import {
   Menu,
   Search,
   Calendar,
+  Download,
+  Upload,
 } from "lucide-react";
 import {
   LOCAL_STORAGE_KEY,
@@ -162,6 +164,42 @@ function App() {
     event.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const exportData = () => {
+    const data = {
+      events: events,
+      isDarkMode: isDarkMode,
+      showDetailedDuration: showDetailedDuration,
+    };
+    const jsonString = JSON.stringify(data);
+    const blob = new Blob([jsonString], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "days_since_data.json";
+    link.click();
+  };
+
+  const importData = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const data = JSON.parse(e.target?.result as string);
+          setEvents(data.events);
+          setIsDarkMode(data.isDarkMode);
+          setShowDetailedDuration(data.showDetailedDuration);
+          localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(data.events));
+          localStorage.setItem(LOCAL_STORAGE_THEME_KEY, data.isDarkMode ? "dark" : "light");
+          localStorage.setItem(LOCAL_STORAGE_DURATION_FORMAT_KEY, data.showDetailedDuration.toString());
+        } catch (error) {
+          console.error("Error parsing imported data:", error);
+        }
+      };
+      reader.readAsText(file);
+    }
+  };
+
   return (
     <div className="container mx-auto p-4">
       <div className="flex justify-between items-center mb-4">
@@ -206,6 +244,22 @@ function App() {
           >
             <Calendar className="h-6 w-6" />
           </button>
+          <button
+            onClick={exportData}
+            className="mr-4 text-blue-500"
+            title="Export Data"
+          >
+            <Download className="h-6 w-6" />
+          </button>
+          <label className="mr-4 text-blue-500 cursor-pointer" title="Import Data">
+            <Upload className="h-6 w-6" />
+            <input
+              type="file"
+              accept=".json"
+              onChange={importData}
+              className="hidden"
+            />
+          </label>
           <button
             onClick={() => setIsDarkMode(!isDarkMode)}
             className="text-gray-800 dark:text-white hidden sm:block"
