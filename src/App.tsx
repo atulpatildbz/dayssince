@@ -132,13 +132,13 @@ function App() {
     showAnniversary: boolean,
     showNextDueDate?: boolean,
     dueDuration?: number
-  ): string => {
+  ): React.ReactNode => {
     const today = new Date();
     const eventDate = new Date(date);
     const timeDiff = today.getTime() - eventDate.getTime();
     const daysDiff = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
 
-    let result = "";
+    let mainResult = "";
 
     if (showDetailedDuration) {
       let years = today.getFullYear() - eventDate.getFullYear();
@@ -154,10 +154,13 @@ function App() {
         months += 12;
       }
 
-      result = `${years} years, ${months} months, ${days} days since`;
+      mainResult = `${years} years, ${months} months, ${days} days since`;
     } else {
-      result = `${daysDiff} days since`;
+      mainResult = `${daysDiff} days since`;
     }
+
+    let anniversaryResult = null;
+    let dueDateResult = null;
 
     if (showAnniversary) {
       const nextAnniversary = new Date(
@@ -168,7 +171,11 @@ function App() {
       const daysUntilAnniversary = Math.ceil(
         (nextAnniversary.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
       );
-      result += ` (${daysUntilAnniversary} days until anniversary)`;
+      anniversaryResult = (
+        <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+          {daysUntilAnniversary} days until anniversary
+        </div>
+      );
     }
 
     if (showNextDueDate && dueDuration) {
@@ -178,10 +185,20 @@ function App() {
       const daysUntilDue = Math.ceil(
         (nextDueDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
       );
-      result += ` (${daysUntilDue} days until next due date)`;
+      dueDateResult = (
+        <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+          {daysUntilDue} days until next due date
+        </div>
+      );
     }
 
-    return result;
+    return (
+      <div>
+        <div className="font-medium">{mainResult}</div>
+        {anniversaryResult}
+        {dueDateResult}
+      </div>
+    );
   };
 
   const filteredEvents = events.filter((event) => {
