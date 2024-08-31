@@ -10,6 +10,7 @@ import {
   Calendar,
   Download,
   Upload,
+  Edit,
 } from "lucide-react";
 import {
   LOCAL_STORAGE_KEY,
@@ -29,6 +30,7 @@ interface Event {
 function App() {
   const [events, setEvents] = useState<Event[]>([]);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const [editingEvent, setEditingEvent] = useState<Event | null>(null);
   const [newEvent, setNewEvent] = useState<Omit<Event, "id">>({
     name: "",
     date: "",
@@ -101,6 +103,22 @@ function App() {
         : event
     );
     saveEvents(updatedEvents);
+  };
+
+  const editEvent = (event: Event) => {
+    setEditingEvent(event);
+    setIsModalOpen(true);
+  };
+
+  const updateEvent = () => {
+    if (editingEvent) {
+      const updatedEvents = events.map((event) =>
+        event.id === editingEvent.id ? editingEvent : event
+      );
+      saveEvents(updatedEvents);
+      setEditingEvent(null);
+      setIsModalOpen(false);
+    }
   };
 
   const calculateDays = (
@@ -224,7 +242,10 @@ function App() {
         </div>
         <div className="flex items-center">
           <button
-            onClick={() => setIsModalOpen(true)}
+            onClick={() => {
+              setEditingEvent(null);
+              setIsModalOpen(true);
+            }}
             className="mr-4 text-blue-500"
             title="Add Event"
           >
@@ -304,6 +325,13 @@ function App() {
               <h2 className="text-xl font-semibold">{event.name}</h2>
               <div className="flex items-center">
                 <button
+                  onClick={() => editEvent(event)}
+                  className="text-blue-500 mr-2"
+                  title="Edit event"
+                >
+                  <Edit className="h-4 w-4" />
+                </button>
+                <button
                   onClick={() => resetEventToToday(event.id)}
                   className="text-blue-500 mr-2"
                   title="Reset to today"
@@ -333,7 +361,9 @@ function App() {
       {isModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
           <div className="bg-white dark:bg-gray-800 p-4 rounded-lg w-full max-w-md">
-            <h2 className="text-2xl font-bold mb-4">Add New Event</h2>
+            <h2 className="text-2xl font-bold mb-4">
+              {editingEvent ? "Edit Event" : "Add New Event"}
+            </h2>
             <div className="mb-4">
               <label htmlFor="name" className="block mb-1">
                 Name
@@ -341,9 +371,11 @@ function App() {
               <input
                 id="name"
                 type="text"
-                value={newEvent.name}
+                value={editingEvent ? editingEvent.name : newEvent.name}
                 onChange={(e) =>
-                  setNewEvent({ ...newEvent, name: e.target.value })
+                  editingEvent
+                    ? setEditingEvent({ ...editingEvent, name: e.target.value })
+                    : setNewEvent({ ...newEvent, name: e.target.value })
                 }
                 className="w-full border rounded px-2 py-1 dark:bg-gray-700 dark:border-gray-600"
               />
@@ -355,9 +387,11 @@ function App() {
               <input
                 id="date"
                 type="date"
-                value={newEvent.date}
+                value={editingEvent ? editingEvent.date : newEvent.date}
                 onChange={(e) =>
-                  setNewEvent({ ...newEvent, date: e.target.value })
+                  editingEvent
+                    ? setEditingEvent({ ...editingEvent, date: e.target.value })
+                    : setNewEvent({ ...newEvent, date: e.target.value })
                 }
                 className="w-full border rounded px-2 py-1 dark:bg-gray-700 dark:border-gray-600"
               />
@@ -366,12 +400,11 @@ function App() {
               <input
                 type="checkbox"
                 id="showAnniversary"
-                checked={newEvent.showAnniversary}
+                checked={editingEvent ? editingEvent.showAnniversary : newEvent.showAnniversary}
                 onChange={(e) =>
-                  setNewEvent({
-                    ...newEvent,
-                    showAnniversary: e.target.checked,
-                  })
+                  editingEvent
+                    ? setEditingEvent({ ...editingEvent, showAnniversary: e.target.checked })
+                    : setNewEvent({ ...newEvent, showAnniversary: e.target.checked })
                 }
                 className="mr-2"
               />
@@ -383,18 +416,23 @@ function App() {
               <input
                 type="checkbox"
                 id="showNextDueDate"
-                checked={newEvent.showNextDueDate}
+                checked={editingEvent ? editingEvent.showNextDueDate : newEvent.showNextDueDate}
                 onChange={(e) =>
-                  setNewEvent({
-                    ...newEvent,
-                    showNextDueDate: e.target.checked,
-                  })
+                  editingEvent
+                    ? setEditingEvent({
+                        ...editingEvent,
+                        showNextDueDate: e.target.checked,
+                      })
+                    : setNewEvent({
+                        ...newEvent,
+                        showNextDueDate: e.target.checked,
+                      })
                 }
                 className="mr-2"
               />
               <label htmlFor="showNextDueDate">Show next due date</label>
             </div>
-            {newEvent.showNextDueDate && (
+            {(editingEvent ? editingEvent.showNextDueDate : newEvent.showNextDueDate) && (
               <div className="mb-4">
                 <label htmlFor="dueDuration" className="block mb-1">
                   Due Duration (in days)
@@ -402,12 +440,17 @@ function App() {
                 <input
                   id="dueDuration"
                   type="number"
-                  value={newEvent.dueDuration}
+                  value={editingEvent ? editingEvent.dueDuration : newEvent.dueDuration}
                   onChange={(e) =>
-                    setNewEvent({
-                      ...newEvent,
-                      dueDuration: parseInt(e.target.value),
-                    })
+                    editingEvent
+                      ? setEditingEvent({
+                          ...editingEvent,
+                          dueDuration: parseInt(e.target.value),
+                        })
+                      : setNewEvent({
+                          ...newEvent,
+                          dueDuration: parseInt(e.target.value),
+                        })
                   }
                   className="w-full border rounded px-2 py-1 dark:bg-gray-700 dark:border-gray-600"
                 />
@@ -421,10 +464,10 @@ function App() {
                 Cancel
               </button>
               <button
-                onClick={addEvent}
+                onClick={editingEvent ? updateEvent : addEvent}
                 className="px-4 py-2 bg-blue-500 text-white rounded"
               >
-                Add Event
+                {editingEvent ? "Update Event" : "Add Event"}
               </button>
             </div>
           </div>
