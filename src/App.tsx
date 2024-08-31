@@ -11,6 +11,8 @@ import {
   Download,
   Upload,
   Edit,
+  Filter,
+  Check,
 } from "lucide-react";
 import {
   LOCAL_STORAGE_KEY,
@@ -26,6 +28,8 @@ interface Event {
   showNextDueDate?: boolean;
   dueDuration?: number;
 }
+
+type FilterType = "all" | "anniversary" | "duedate" | "neither";
 
 function App() {
   const [events, setEvents] = useState<Event[]>([]);
@@ -52,6 +56,8 @@ function App() {
       return storedDurationFormat === "true";
     }
   );
+  const [filterType, setFilterType] = useState<FilterType>("all");
+  const [isFilterOpen, setIsFilterOpen] = useState<boolean>(false);
 
   useEffect(() => {
     const storedEvents = JSON.parse(
@@ -178,9 +184,20 @@ function App() {
     return result;
   };
 
-  const filteredEvents = events.filter((event) =>
-    event.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredEvents = events.filter((event) => {
+    const nameMatch = event.name
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase());
+    let typeMatch = true;
+    if (filterType === "anniversary") {
+      typeMatch = event.showAnniversary;
+    } else if (filterType === "duedate") {
+      typeMatch = event.showNextDueDate || false;
+    } else if (filterType === "neither") {
+      typeMatch = !event.showAnniversary && !event.showNextDueDate;
+    }
+    return nameMatch && typeMatch;
+  });
 
   const exportData = () => {
     const data = {
@@ -208,8 +225,14 @@ function App() {
           setIsDarkMode(data.isDarkMode);
           setShowDetailedDuration(data.showDetailedDuration);
           localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(data.events));
-          localStorage.setItem(LOCAL_STORAGE_THEME_KEY, data.isDarkMode ? "dark" : "light");
-          localStorage.setItem(LOCAL_STORAGE_DURATION_FORMAT_KEY, data.showDetailedDuration.toString());
+          localStorage.setItem(
+            LOCAL_STORAGE_THEME_KEY,
+            data.isDarkMode ? "dark" : "light"
+          );
+          localStorage.setItem(
+            LOCAL_STORAGE_DURATION_FORMAT_KEY,
+            data.showDetailedDuration.toString()
+          );
         } catch (error) {
           console.error("Error parsing imported data:", error);
         }
@@ -272,7 +295,10 @@ function App() {
           >
             <Download className="h-6 w-6" />
           </button>
-          <label className="mr-4 text-blue-500 cursor-pointer" title="Import Data">
+          <label
+            className="mr-4 text-blue-500 cursor-pointer"
+            title="Import Data"
+          >
             <Upload className="h-6 w-6" />
             <input
               type="file"
@@ -281,6 +307,34 @@ function App() {
               className="hidden"
             />
           </label>
+          <div className="relative mr-4">
+            <button
+              onClick={() => setIsFilterOpen(!isFilterOpen)}
+              className={`text-blue-500 flex items-center ${filterType !== "all" ? "bg-blue-100 dark:bg-blue-900 rounded-full p-1" : ""}`}
+              title="Filter Events"
+            >
+              <Filter className="h-6 w-6" />
+            </button>
+            {isFilterOpen && (
+              <div className="absolute top-full right-0 mt-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md text-gray-700 dark:text-white">
+                {["all", "anniversary", "duedate", "neither"].map((option) => (
+                  <button
+                    key={option}
+                    onClick={() => {
+                      setFilterType(option as FilterType);
+                      setIsFilterOpen(false);
+                    }}
+                    className="block w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600"
+                  >
+                    {option.charAt(0).toUpperCase() + option.slice(1)}
+                    {filterType === option && (
+                      <Check className="inline-block ml-2 h-4 w-4" />
+                    )}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
           <button
             onClick={() => setIsDarkMode(!isDarkMode)}
             className="text-gray-800 dark:text-white hidden sm:block"
@@ -400,11 +454,21 @@ function App() {
               <input
                 type="checkbox"
                 id="showAnniversary"
-                checked={editingEvent ? editingEvent.showAnniversary : newEvent.showAnniversary}
+                checked={
+                  editingEvent
+                    ? editingEvent.showAnniversary
+                    : newEvent.showAnniversary
+                }
                 onChange={(e) =>
                   editingEvent
-                    ? setEditingEvent({ ...editingEvent, showAnniversary: e.target.checked })
-                    : setNewEvent({ ...newEvent, showAnniversary: e.target.checked })
+                    ? setEditingEvent({
+                        ...editingEvent,
+                        showAnniversary: e.target.checked,
+                      })
+                    : setNewEvent({
+                        ...newEvent,
+                        showAnniversary: e.target.checked,
+                      })
                 }
                 className="mr-2"
               />
@@ -416,7 +480,11 @@ function App() {
               <input
                 type="checkbox"
                 id="showNextDueDate"
-                checked={editingEvent ? editingEvent.showNextDueDate : newEvent.showNextDueDate}
+                checked={
+                  editingEvent
+                    ? editingEvent.showNextDueDate
+                    : newEvent.showNextDueDate
+                }
                 onChange={(e) =>
                   editingEvent
                     ? setEditingEvent({
@@ -432,7 +500,9 @@ function App() {
               />
               <label htmlFor="showNextDueDate">Show next due date</label>
             </div>
-            {(editingEvent ? editingEvent.showNextDueDate : newEvent.showNextDueDate) && (
+            {(editingEvent
+              ? editingEvent.showNextDueDate
+              : newEvent.showNextDueDate) && (
               <div className="mb-4">
                 <label htmlFor="dueDuration" className="block mb-1">
                   Due Duration (in days)
@@ -440,7 +510,11 @@ function App() {
                 <input
                   id="dueDuration"
                   type="number"
-                  value={editingEvent ? editingEvent.dueDuration : newEvent.dueDuration}
+                  value={
+                    editingEvent
+                      ? editingEvent.dueDuration
+                      : newEvent.dueDuration
+                  }
                   onChange={(e) =>
                     editingEvent
                       ? setEditingEvent({
