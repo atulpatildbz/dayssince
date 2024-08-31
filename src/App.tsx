@@ -9,7 +9,11 @@ import {
   Search,
   Calendar,
 } from "lucide-react";
-import { LOCAL_STORAGE_KEY, LOCAL_STORAGE_THEME_KEY } from "./constants";
+import {
+  LOCAL_STORAGE_KEY,
+  LOCAL_STORAGE_THEME_KEY,
+  LOCAL_STORAGE_DURATION_FORMAT_KEY,
+} from "./constants";
 
 interface Event {
   id: number;
@@ -36,8 +40,14 @@ function App() {
   });
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
   const [searchTerm, setSearchTerm] = useState<string>("");
-  const [showDetailedDuration, setShowDetailedDuration] =
-    useState<boolean>(false);
+  const [showDetailedDuration, setShowDetailedDuration] = useState<boolean>(
+    () => {
+      const storedDurationFormat = localStorage.getItem(
+        LOCAL_STORAGE_DURATION_FORMAT_KEY
+      );
+      return storedDurationFormat === "true";
+    }
+  );
 
   useEffect(() => {
     const storedEvents = JSON.parse(
@@ -183,7 +193,14 @@ function App() {
             <PlusCircle className="h-6 w-6" />
           </button>
           <button
-            onClick={() => setShowDetailedDuration(!showDetailedDuration)}
+            onClick={() => {
+              const newShowDetailedDuration = !showDetailedDuration;
+              localStorage.setItem(
+                LOCAL_STORAGE_DURATION_FORMAT_KEY,
+                newShowDetailedDuration.toString()
+              );
+              setShowDetailedDuration(newShowDetailedDuration);
+            }}
             className="mr-4 text-blue-500"
             title="Toggle Duration Format"
           >
