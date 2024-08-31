@@ -280,7 +280,7 @@ function App() {
         </div>
       </div>
       {isMobileMenuOpen && (
-        <div className="sm:hidden mb-4">
+        <div className="sm:hidden fixed top-0 right-0 mt-16 mr-4 bg-white dark:bg-gray-800 shadow-lg rounded-lg p-4 z-50">
           <button
             onClick={() => setIsDarkMode(!isDarkMode)}
             className="flex items-center text-gray-800 dark:text-white"
