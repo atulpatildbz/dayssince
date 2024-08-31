@@ -40,8 +40,6 @@ jobs:
           for i in {1..5}; do
             bun install && break || sleep 15;
           done
-      - name: Install workbox-cli
-        run: npm install -g workbox-cli
       - name: Build
         run: bun run build
       - name: Setup Pages

@@ -12,11 +12,11 @@
 <body>
   <div id="root"></div>
   <script type="module" src="/src/main.tsx"></script>
-  <script>
+  <!-- <script>
     if ("serviceWorker" in navigator) {
       window.addEventListener("load", () => {
         navigator.serviceWorker
-          .register("/sw.js")
+          .register("/service-worker.js")
           .then((registration) => {
             console.log("SW registered: ", registration);
           })
@@ -25,5 +25,5 @@
           });
       });
     }
-  </script>
+  </script> -->
 </body>
