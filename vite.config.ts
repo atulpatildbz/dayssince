@@ -8,8 +8,13 @@ export default defineConfig({
   plugins: [
     react(),
     VitePWA({
+      strategies: 'injectManifest',
+      srcDir: 'src',
+      filename: 'sw.ts',
       registerType: "autoUpdate",
       manifest: {
+        name: 'Days Since',
+        short_name: 'DaysSince',
         icons: [
           {
             src: "android-chrome-192x192.png",
@@ -19,6 +24,9 @@ export default defineConfig({
           },
         ],
       },
+      injectManifest: {
+        injectionPoint: undefined
+      }
     }),
   ],
 });
