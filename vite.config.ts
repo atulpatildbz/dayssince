@@ -15,8 +15,8 @@ export default defineConfig({
     },
 
     manifest: {
-      name: 'dayssince',
-      short_name: 'dayssince',
+      name: 'Days Since',
+      short_name: 'Days Since',
       description: 'Track the number of days since an event occured',
       theme_color: '#ffffff',
     },
