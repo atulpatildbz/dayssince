@@ -8,5 +8,5 @@ export default defineConfig({
         preset: '2023',
     },
     preset,
-    images: ['public/favicon-32x32.png'],
+    images: ['public/days-since.svg'],
 })
